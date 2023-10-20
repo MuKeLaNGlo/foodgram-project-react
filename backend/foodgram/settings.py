@@ -6,14 +6,12 @@ from dotenv import load_dotenv
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 load_dotenv()
-# SECRET_KEY = 'django-insecure-s(z!&znk+_(+r3y@7n0(o1%^)7f8p=u_g)l0*3)atsu$%&nets'
 
-SECRET_KEY = os.getenv("SECRET_KEY", "default_secret_key")
+SECRET_KEY = os.getenv('SECRET_KEY', default='token')
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = os.getenv('DEBUG', default='False').lower() == 'true'
 
-ALLOWED_HOSTS = ["backend", "localhost", "127.0.0.1"]
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', default='127.0.0.1, localhost').split(', ')
 
 
 CSRF_TRUSTED_ORIGINS = ["http://localhost"]
