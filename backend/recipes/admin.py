@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.utils.html import mark_safe
 
 from .models import Ingredient, Recipe, Tag
 
@@ -15,9 +16,24 @@ class RecipeTagsInLine(admin.TabularInline):
 
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "text", "pub_date", "author")
+    list_display = (
+        "id", "name", "text", "pub_date",
+        "author", "get_image", "count_favorites"
+    )
     search_fields = ("name", "author")
     inlines = (RecipeIngredientsInLine, RecipeTagsInLine)
+
+    def get_image(self, obj):
+        return mark_safe(
+            f'<img src="{obj.image.url}" width="80" height="30" />'
+        )
+
+    get_image.short_description = "Изображение"
+
+    def count_favorites(self, obj):
+        return obj.in_favorite.count()
+
+    count_favorites.short_description = "В избранном"
 
 
 @admin.register(Ingredient)
