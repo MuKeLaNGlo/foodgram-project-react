@@ -76,8 +76,8 @@ sudo docker-compose exec backend python manage.py create_tags
 
 Стек технологий: Python 3, Django, Django Rest, React, Docker, PostgreSQL, nginx, gunicorn, Djoser.
 
-Веб-сервер: Nginx 
-Frontend: React
-Backend: Django
-API: Django REST
+Веб-сервер: Nginx                 
+Frontend: React                 
+Backend: Django                
+API: Django REST               
 База данных: PostgreSQL
