@@ -76,8 +76,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
     @action(
-            detail=False, methods=("get",),
-            permission_classes=(IsAuthenticated,)
+        detail=False, methods=("get",),
+        permission_classes=(IsAuthenticated,)
     )
     def download_shopping_cart(self, request):
         shopping_cart = ShoppingCart.objects.filter(user=self.request.user)
