@@ -1,7 +1,8 @@
 from django.contrib import admin
+from django.db.models import Count
 from django.utils.html import mark_safe
 
-from .models import Ingredient, Recipe, Tag
+from .models import Favorite, Recipe
 
 
 class RecipeIngredientsInLine(admin.TabularInline):
@@ -17,10 +18,15 @@ class RecipeTagsInLine(admin.TabularInline):
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
     list_display = (
-        "id", "name", "text", "pub_date",
-        "author", "get_image", "count_favorites"
+        'id',
+        'name',
+        'text',
+        'created_at',
+        'author',
+        'get_image',
+        'count_favorites',
     )
-    search_fields = ("name", "author")
+    search_fields = ('name', 'author')
     inlines = (RecipeIngredientsInLine, RecipeTagsInLine)
 
     def get_image(self, obj):
@@ -28,22 +34,19 @@ class RecipeAdmin(admin.ModelAdmin):
             f'<img src="{obj.image.url}" width="80" height="30" />'
         )
 
-    get_image.short_description = "Изображение"
+    get_image.short_description = 'Изображение'
 
     def count_favorites(self, obj):
-        return obj.in_favorite.count()
+        return obj.favorite_count
 
-    count_favorites.short_description = "В избранном"
+    count_favorites.short_description = 'В избранном'
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        queryset = queryset.annotate(favorite_count=Count('favorites'))
+        return queryset
 
 
-@admin.register(Ingredient)
+@admin.register(Favorite)
 class IngredientAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "measurement_unit")
-    search_fields = ("name",)
-
-
-@admin.register(Tag)
-class TagAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "color", "slug")
-    search_fields = ("name",)
-    prepopulated_fields = {"slug": ("name",)}
+    list_display = ('user', 'recipe')
