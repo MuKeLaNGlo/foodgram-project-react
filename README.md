@@ -28,28 +28,29 @@ DB_HOST=db
 DB_PORT=5432
 SECRET_KEY='секретный ключ'
 ALLOWED_HOSTS='имя домена или ip хоста'
+DEBUG=False
 ```
 
 ---
-## 3. Команды для запуска
+## 3. Запускаем проект
 
 Перед запуском необходимо склонировать проект:
 ```bash
 HTTPS: git clone https://github.com/MuKeLaNGlo/foodgram-project-react.git
 ```
 
-Запустить контейнеры.  
+Запускаем контейнеры.  
 Из папки "./infra/" выполнить команду:
 ```bash
-docker-compose up -d
+sudo docker-compose up -d
 ```
 
-После успешного запуска контейнеров выполнить миграции:
+После запуска контейнеров выполнить миграции:
 ```bash
 sudo docker-compose exec backend python manage.py migrate
 ```
 
-Создать суперюзера (Администратора):
+Создать суперпользователя:
 ```bash
 sudo docker-compose exec backend python manage.py createsuperuser
 ```
@@ -64,15 +65,18 @@ sudo docker-compose exec backend python manage.py collectstatic --no-input
 ---
 ## 4. Заполнение базы данных
 
-С проектом поставляются данные об ингредиентах.  
+Также есть заготовленные ингредиенты для рецептов, их можно импортировать.  
 Заполнить базу данных ингредиентами можно выполнив следующую команду из папки "./infra/":
 ```bash
 sudo docker-compose exec backend python manage.py load_data
+```
+Заполнить базу данных ингредиентами можно выполнив следующую команду из папки "./infra/":
+```bash
 sudo docker-compose exec backend python manage.py create_tags
 ```
 
 ---
-## 5. Техническая информация
+## О проекте
 
 Стек технологий: Python 3, Django, Django Rest, React, Docker, PostgreSQL, nginx, gunicorn, Djoser.
 
