@@ -76,6 +76,7 @@ class RecipeIngredient(models.Model):
         verbose_name = 'Ингредиент'
         verbose_name_plural = 'Ингредиенты'
         ordering = ['-id']
+        unique_together = ('recipe', 'ingredient')
 
     def __str__(self):
         return f'Рецепт {self.recipe} --> ингредиент {self.ingredient}'
@@ -95,6 +96,7 @@ class RecipeTag(models.Model):
     class Meta:
         verbose_name = 'Теги рецепта'
         verbose_name_plural = 'Теги рецепта'
+        unique_together = ('recipe', 'tag')
 
     def __str__(self):
         return f'Рецепт {self.recipe} --> тег {self.tag}'
@@ -118,6 +120,7 @@ class ShoppingCart(models.Model):
     class Meta:
         verbose_name = 'Корзина'
         verbose_name_plural = 'Корзины'
+        unique_together = ('user', 'recipe')
 
     def __str__(self):
         return f'Корзина пользователя {self.user.username}'
@@ -142,6 +145,7 @@ class Favorite(models.Model):
     class Meta:
         verbose_name = 'Понравившийся рецепт'
         verbose_name_plural = 'Понравившиеся рецепты'
+        unique_together = ('user', 'recipe')
 
     def __str__(self):
         return f'{self.user.username} - {self.recipe.name}'

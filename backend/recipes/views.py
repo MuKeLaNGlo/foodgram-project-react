@@ -2,6 +2,7 @@ import csv
 
 from django.db.models import Sum
 from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import authentication, permissions, status, viewsets
 from rest_framework.decorators import action
@@ -17,6 +18,25 @@ from .serializers import (
     RecipeSerializer,
     ShoppingCartSerializer,
 )
+
+
+class RecipeActionMixin(APIView):
+    authentication_classes = (authentication.TokenAuthentication,)
+    permission_classes = (permissions.IsAuthenticated,)
+    pagination_class = CustomPageNumberPagination
+
+    def perform_recipe_action(
+            self, request, pk: int, action_fn, error_message):
+        user = request.user
+        recipe = get_object_or_404(Recipe, pk=pk)
+
+        if not action_fn(user, recipe):
+            return Response(
+                {'error': error_message.format(pk)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -48,7 +68,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         ingredients = (
             RecipeIngredient.objects.filter(recipe__in=shopping_cart_recipes)
             .values('ingredient__name', 'ingredient__measurement_unit')
-            .annotate(amount=Sum('amount'))
+            .annotate(total_amount=Sum('amount'))
         )
 
         response = HttpResponse(content_type='text/csv')
@@ -60,101 +80,93 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
         writer.writerow(['Ингредиент', 'Количество', 'Единица измерения'])
 
-        for ingredient in ingredients:
-            writer.writerow(
+        writer.writerows(
+            [
                 [
                     ingredient['ingredient__name'],
-                    ingredient['amount'],
+                    ingredient['total_amount'],
                     ingredient['ingredient__measurement_unit'],
                 ]
-            )
+                for ingredient in ingredients
+            ]
+        )
 
         return response
 
 
-class FavoriteView(APIView):
-    authentication_classes = (authentication.TokenAuthentication,)
-    permission_classes = (permissions.IsAuthenticated,)
+class FavoriteView(RecipeActionMixin, APIView):
     serializer_class = FavoriteSerializer
 
     def post(self, request, pk: int):
-        author = request.user
-        if Favorite.objects.filter(user=author, recipe_id=pk).exists():
-            return Response(
-                {
-                    'error': (
-                        f'Ошибка добавления в избранное. '
-                        f'Рецепт "{id}" уже есть в избранном'
-                    )
-                },
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        recipe = Recipe.objects.get(id=pk)
-        favorite = Favorite.objects.create(user=author, recipe=recipe)
-        serializer = FavoriteSerializer(favorite, context={'request': request})
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        error_message = (
+            f'Ошибка добавления в избранное. '
+            f'Рецепт "{pk}" уже есть в избранном'
+        )
+        return self.perform_recipe_action(
+            request, pk, self.add_to_favorites, error_message
+        )
 
     def delete(self, request, pk: int):
-        author = request.user
-        if not Favorite.objects.filter(user=author, recipe_id=pk).exists():
-            return Response(
-                {
-                    'error': (
-                        f'Ошибка удаление из избранного. '
-                        f'Рецептa "{id}" нету в избранном'
-                    )
-                },
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        Favorite.objects.filter(user=author, recipe_id=pk).delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        error_message = (
+            f'Ошибка удаление из избранного. '
+            f'Рецепт "{pk}" нету в избранном'
+        )
+        return self.perform_recipe_action(
+            request, pk, self.remove_from_favorites, error_message
+        )
+
+    def add_to_favorites(self, user, recipe):
+        if Favorite.objects.filter(
+            user=user, recipe=recipe
+        ).exists():
+            return False
+        Favorite.objects.create(user=user, recipe=recipe)
+        return True
+
+    def remove_from_favorites(self, user, recipe):
+        if not Favorite.objects.filter(
+            user=user, recipe=recipe
+        ).exists():
+            return False
+        Favorite.objects.filter(user=user, recipe=recipe).delete()
+        return True
 
 
-class ShoppingCartView(APIView):
-    authentication_classes = (authentication.TokenAuthentication,)
-    permission_classes = (permissions.IsAuthenticated,)
+class ShoppingCartView(RecipeActionMixin, APIView):
     serializer_class = ShoppingCartSerializer
-    pagination_class = CustomPageNumberPagination
 
     def post(self, request, pk: int):
-        user = request.user
-        id = pk
-
-        if ShoppingCart.objects.filter(user=user, recipe__id=id).exists():
-            return Response(
-                {
-                    'error': (
-                        f'Ошибка добавления в список покупок. '
-                        f'Рецепт "{id}" уже есть в списке покупок'
-                    )
-                },
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        recipe = Recipe.objects.get(pk=id)
-        shopping_cart = ShoppingCart.objects.create(user=user, recipe=recipe)
-        serializer = ShoppingCartSerializer(
-            shopping_cart,
-            context={'request': request}
+        error_message = (
+            f'Ошибка добавления в список покупок. '
+            f'Рецепт "{pk}" уже есть в списке покупок'
         )
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return self.perform_recipe_action(
+            request, pk, self.add_to_shopping_cart, error_message
+        )
 
     def delete(self, request, pk: int):
-        user = request.user
-        recipe_id = pk
+        error_message = (
+            f'Ошибка удаления из списка покупок. '
+            f'Рецепт "{pk}" нет в списке покупок'
+        )
+        return self.perform_recipe_action(
+            request, pk, self.remove_from_shopping_cart, error_message
+        )
 
-        if not ShoppingCart.objects.filter(
-            user=user, recipe__id=recipe_id
+    def add_to_shopping_cart(self, user, recipe):
+        if ShoppingCart.objects.filter(
+            user=user, recipe=recipe
         ).exists():
-            return Response(
-                {
-                    'error': (
-                        f'Ошибка удаления из списка покупок. '
-                        f'Рецепта "{recipe_id}" нет в списке покупок'
-                    )
-                },
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            return False
+        ShoppingCart.objects.create(user=user, recipe=recipe)
+        return True
 
-        ShoppingCart.objects.filter(user=user, recipe_id=pk).delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+    def remove_from_shopping_cart(self, user, recipe):
+        if not ShoppingCart.objects.filter(
+            user=user, recipe=recipe
+        ).exists():
+            return False
+        ShoppingCart.objects.filter(
+            user=user, recipe=recipe
+        ).delete()
+        return True

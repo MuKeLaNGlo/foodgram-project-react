@@ -36,13 +36,6 @@ class CustomUserCreateSerializer(UserCreateSerializer):
                   'password', 'first_name', 'last_name')
 
 
-class CustomTokenCreateSerializer(TokenCreateSerializer):
-    class Meta:
-        model = User
-        fields = ('auth_token', 'id', 'email',
-                  'username', 'first_name', 'last_name')
-
-
 class RecipeInSubscriptionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recipe
