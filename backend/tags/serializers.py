@@ -7,7 +7,3 @@ class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
         fields = ('id', 'name', 'color', 'slug')
-
-
-class TagInputSerializer(serializers.Serializer):
-    id = serializers.IntegerField()
