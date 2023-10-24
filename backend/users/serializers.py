@@ -1,5 +1,5 @@
 from django.contrib.auth import get_user_model
-from djoser.serializers import TokenCreateSerializer, UserCreateSerializer
+from djoser.serializers import UserCreateSerializer
 from rest_framework import serializers
 
 from recipes.models import Recipe
