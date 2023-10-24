@@ -1,5 +1,4 @@
-from rest_framework import status, viewsets
-from rest_framework.response import Response
+from rest_framework import viewsets
 
 from tags.models import Tag
 from tags.serializers import TagSerializer
