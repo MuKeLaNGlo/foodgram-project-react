@@ -1,5 +1,13 @@
 # Foodgram
 [Сслыка на сайт](https://new-foodgram.serveblog.net/)
+Данные для админки
+
+login: `root`
+
+password: `root`
+
+email: `root@root.com`
+
 ---
 ## 1. Описание
 
