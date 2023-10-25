@@ -60,17 +60,6 @@ class BaseRecipeSerializer(serializers.ModelSerializer):
             return ShoppingCart.objects.filter(user=user, recipe=obj).exists()
         return False
 
-    def create_ingredients(self, recipe, ingredients):
-        recipe_ingredients = [
-            RecipeIngredient(
-                recipe=recipe,
-                ingredient=ingredient['ingredient'],
-                amount=ingredient['amount']
-            )
-            for ingredient in ingredients
-        ]
-        RecipeIngredient.objects.bulk_create(recipe_ingredients)
-
 
 class RecipeSerializer(BaseRecipeSerializer):
     author = CustomUserSerializer(read_only=True)
@@ -83,11 +72,6 @@ class RecipeSerializer(BaseRecipeSerializer):
     class Meta:
         model = Recipe
         fields = '__all__'
-
-    def get_ingredients(self, obj):
-        return RecipeIngredientSerializer(
-            RecipeIngredient.objects.filter(recipe=obj), many=True
-        ).data
 
 
 class RecipeCreateSerializer(BaseRecipeSerializer):
@@ -115,6 +99,17 @@ class RecipeCreateSerializer(BaseRecipeSerializer):
                 )
             seen_ingredients.add(ingredient_id)
         return value
+
+    def create_ingredients(self, recipe, ingredients):
+        recipe_ingredients = [
+            RecipeIngredient(
+                recipe=recipe,
+                ingredient=ingredient['ingredient'],
+                amount=ingredient['amount']
+            )
+            for ingredient in ingredients
+        ]
+        RecipeIngredient.objects.bulk_create(recipe_ingredients)
 
     def create(self, validated_data):
         tags = validated_data.pop('tags')
