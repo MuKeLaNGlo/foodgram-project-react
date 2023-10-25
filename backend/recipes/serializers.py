@@ -123,17 +123,22 @@ class RecipeCreateSerializer(BaseRecipeSerializer):
         return recipe
 
     def update(self, instance, validated_data):
-        tags = validated_data.get('tags')
-        if tags is not None:
-            instance.tags.set(tags)
-
-        ingredients_data = validated_data.get('ingredients')
+        ingredients_data = validated_data.get('recipe_ingredients')
         if ingredients_data is not None:
             instance.ingredients.clear()
             self.create_ingredients(instance, ingredients_data)
 
-        super().update(instance, validated_data)
+        instance.name = validated_data.get('name', instance.name)
+        instance.text = validated_data.get('text', instance.text)
+        instance.image = validated_data.get('image', instance.image)
+        instance.cooking_time = validated_data.get('cooking_time',
+                                                   instance.cooking_time)
 
+        tags = validated_data.get('tags')
+        if tags is not None:
+            instance.tags.set(tags)
+
+        instance.save()
         return instance
 
 
