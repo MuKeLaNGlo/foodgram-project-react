@@ -30,15 +30,19 @@ class RecipeActionMixin(APIView):
         if model_class.objects.filter(
             user=user, recipe=recipe
         ).exists():
-            return False
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         model_class.objects.create(user=user, recipe=recipe)
-        return True
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @staticmethod
     def remove_from_list(user, recipe, model_class):
         if not model_class.objects.filter(
             user=user, recipe=recipe
         ).exists():
-            return False
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         model_class.objects.filter(user=user, recipe=recipe).delete()
-        return True
+        return Response(status=status.HTTP_204_NO_CONTENT)
