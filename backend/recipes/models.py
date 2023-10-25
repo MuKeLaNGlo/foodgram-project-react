@@ -76,7 +76,12 @@ class RecipeIngredient(models.Model):
         verbose_name = 'Ингредиент'
         verbose_name_plural = 'Ингредиенты'
         ordering = ['-id']
-        unique_together = ('recipe', 'ingredient')
+        constraints = [
+            models.UniqueConstraint(
+                fields=['recipe', 'ingredient'],
+                name='unique_recipe_ingredient'
+            )
+        ]
 
     def __str__(self):
         return f'Рецепт {self.recipe} --> ингредиент {self.ingredient}'
@@ -86,7 +91,8 @@ class RecipeTag(models.Model):
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        verbose_name='Рецепт')
+        verbose_name='Рецепт'
+    )
     tag = models.ForeignKey(
         Tag,
         on_delete=models.CASCADE,
@@ -96,7 +102,12 @@ class RecipeTag(models.Model):
     class Meta:
         verbose_name = 'Теги рецепта'
         verbose_name_plural = 'Теги рецепта'
-        unique_together = ('recipe', 'tag')
+        constraints = [
+            models.UniqueConstraint(
+                fields=['recipe', 'tag'],
+                name='unique_recipe_tag'
+            )
+        ]
 
     def __str__(self):
         return f'Рецепт {self.recipe} --> тег {self.tag}'
@@ -120,7 +131,12 @@ class ShoppingCart(models.Model):
     class Meta:
         verbose_name = 'Корзина'
         verbose_name_plural = 'Корзины'
-        unique_together = ('user', 'recipe')
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'recipe'],
+                name='unique_user_recipe_cart'
+            )
+        ]
 
     def __str__(self):
         return f'Корзина пользователя {self.user.username}'
@@ -145,7 +161,12 @@ class Favorite(models.Model):
     class Meta:
         verbose_name = 'Понравившийся рецепт'
         verbose_name_plural = 'Понравившиеся рецепты'
-        unique_together = ('user', 'recipe')
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'recipe'],
+                name='unique_user_recipe_favorite'
+            )
+        ]
 
     def __str__(self):
         return f'{self.user.username} - {self.recipe.name}'

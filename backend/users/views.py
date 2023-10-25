@@ -2,9 +2,8 @@ from django.contrib.auth import get_user_model
 from djoser.views import UserViewSet as DjosrUserViewSet
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.permissions import (
-    IsAuthenticated, IsAuthenticatedOrReadOnly
-)
+from rest_framework.permissions import (IsAuthenticated,
+                                        IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
 
 from recipes.pagination import CustomPageNumberPagination
@@ -65,16 +64,15 @@ class UserViewSet(DjosrUserViewSet):
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-        else:
-            subscription = Subscription.objects.filter(
-                user=current_user, author=target_user
-            ).first()
+        subscription = Subscription.objects.filter(
+            user=current_user, author=target_user
+        ).first()
 
-            if subscription:
-                subscription.delete()
-                return Response(status=status.HTTP_204_NO_CONTENT)
+        if subscription:
+            subscription.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
 
-            return Response(
-                {'detail': 'Подписки не существует.'},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        return Response(
+            {'detail': 'Подписки не существует.'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
