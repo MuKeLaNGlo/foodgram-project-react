@@ -9,7 +9,7 @@ from rest_framework.views import APIView
 
 from .filters import RecipeFilter
 from .mixins import RecipeActionMixin
-from .models import Recipe, RecipeIngredient, ShoppingCart
+from .models import Favorite, Recipe, RecipeIngredient, ShoppingCart
 from .pagination import CustomPageNumberPagination
 from .serializers import (FavoriteSerializer, RecipeCreateSerializer,
                           RecipeSerializer, ShoppingCartSerializer)
@@ -72,6 +72,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
 class FavoriteView(RecipeActionMixin, APIView):
     serializer_class = FavoriteSerializer
+    pagination_class = CustomPageNumberPagination
 
     def post(self, request, pk: int):
         error_message = (
@@ -79,7 +80,7 @@ class FavoriteView(RecipeActionMixin, APIView):
             f'Рецепт "{pk}" уже есть в избранном'
         )
         return self.perform_recipe_action(
-            request, pk, self.add_to_favorites, error_message
+            request, pk, self.add_to_list, Favorite, error_message
         )
 
     def delete(self, request, pk: int):
@@ -88,7 +89,7 @@ class FavoriteView(RecipeActionMixin, APIView):
             f'Рецепт "{pk}" нету в избранном'
         )
         return self.perform_recipe_action(
-            request, pk, self.remove_from_favorites, error_message
+            request, pk, self.remove_from_list, Favorite, error_message
         )
 
 
@@ -101,7 +102,7 @@ class ShoppingCartView(RecipeActionMixin, APIView):
             f'Рецепт "{pk}" уже есть в списке покупок'
         )
         return self.perform_recipe_action(
-            request, pk, self.add_to_shopping_cart, error_message
+            request, pk, self.add_to_list, ShoppingCart, error_message
         )
 
     def delete(self, request, pk: int):
@@ -110,5 +111,5 @@ class ShoppingCartView(RecipeActionMixin, APIView):
             f'Рецепт "{pk}" нет в списке покупок'
         )
         return self.perform_recipe_action(
-            request, pk, self.remove_from_shopping_cart, error_message
+            request, pk, self.remove_from_list, ShoppingCart, error_message
         )

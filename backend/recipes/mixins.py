@@ -4,20 +4,18 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .models import Recipe
-from .pagination import CustomPageNumberPagination
 
 
 class RecipeActionMixin(APIView):
     authentication_classes = (authentication.TokenAuthentication,)
     permission_classes = (permissions.IsAuthenticated,)
-    pagination_class = CustomPageNumberPagination
 
     def perform_recipe_action(
-            self, request, pk: int, action_fn, error_message):
+            self, request, pk: int, action_fn, model_class, error_message):
         user = request.user
         recipe = get_object_or_404(Recipe, pk=pk)
 
-        if not action_fn(user, recipe):
+        if not action_fn(user, recipe, model_class):
             return Response(
                 {'error': error_message.format(pk)},
                 status=status.HTTP_400_BAD_REQUEST,

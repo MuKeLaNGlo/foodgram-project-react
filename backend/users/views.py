@@ -31,7 +31,14 @@ class UserViewSet(DjosrUserViewSet):
         authors = user_subscriptions.values_list('author__id', flat=True)
         queryset = User.objects.filter(pk__in=authors)
         paginated_queryset = self.paginate_queryset(queryset)
-        serializer = self.get_serializer(paginated_queryset, many=True)
+        recipes_limit = self.request.query_params.get('recipes_limit', None)
+        recipes_limit = int(recipes_limit) > 0 and int(recipes_limit) or None
+
+        serializer = self.get_serializer(
+            paginated_queryset,
+            many=True,
+            context={'recipes_limit': recipes_limit}
+        )
 
         return self.get_paginated_response(serializer.data)
 
@@ -60,7 +67,10 @@ class UserViewSet(DjosrUserViewSet):
                 )
 
             Subscription.objects.create(user=current_user, author=target_user)
-            serializer = CustomUserSerializer(target_user)
+            serializer = CustomUserSerializer(
+                target_user,
+                context={'request': request}
+            )
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
